@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    FasterSL：ESC 菜单里重载当前房间、回退到任意节点（单人 / 多人不断线）。
+    编译：dotnet build -c Release -p:Sts2GameDir=<游戏根目录> [-p:InstallToGame=true]
+    也可以先设置环境变量 STS2_GAME_DIR。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>FasterSL</AssemblyName>
+    <RootNamespace>FasterSL</RootNamespace>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Version>0.6.3</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <DebugType>none</DebugType>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Sts2GameDir Condition="'$(Sts2GameDir)' == ''">$(STS2_GAME_DIR)</Sts2GameDir>
+    <Sts2DataDir>$(Sts2GameDir)/data_sts2_windows_x86_64</Sts2DataDir>
+  </PropertyGroup>
+
+  <Target Name="CheckSts2GameDir" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(Sts2DataDir)/sts2.dll')"
+           Text="找不到 sts2.dll。请设置环境变量 STS2_GAME_DIR，或传入 -p:Sts2GameDir=&lt;游戏根目录&gt;。当前值：'$(Sts2GameDir)'" />
+  </Target>
+
+  <ItemGroup>
+    <Reference Include="sts2" HintPath="$(Sts2DataDir)/sts2.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(Sts2DataDir)/0Harmony.dll" Private="false" />
+    <Reference Include="GodotSharp" HintPath="$(Sts2DataDir)/GodotSharp.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="FasterSL.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="InstallToGame" AfterTargets="Build" Condition="'$(InstallToGame)' == 'true'">
+    <PropertyGroup>
+      <ModInstallDir>$(Sts2GameDir)/mods/FasterSL</ModInstallDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(ModInstallDir)" />
+    <Copy SourceFiles="$(OutputPath)FasterSL.dll;$(OutputPath)FasterSL.json" DestinationFolder="$(ModInstallDir)" />
+    <Message Importance="high" Text="已安装到 $(ModInstallDir)" />
+  </Target>
+
+</Project>
