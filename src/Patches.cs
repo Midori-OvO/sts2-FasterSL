@@ -45,6 +45,7 @@ internal static class Patches
 		Patch(harmony, AccessTools.DeclaredMethod(typeof(NPauseMenu), "CloseToMenu"), prefix: nameof(CloseToMenuPrefix));
 		Patch(harmony, AccessTools.DeclaredMethod(typeof(NTopBar), "_Ready"), postfix: nameof(TopBarReadyPostfix));
 		Patch(harmony, AccessTools.DeclaredMethod(typeof(RunManager), "LoadIntoLatestMapCoord"), prefix: nameof(LoadIntoLatestMapCoordPrefix));
+		Patch(harmony, AccessTools.DeclaredMethod(AccessTools.TypeByName("MegaCrit.Sts2.Core.Nodes.NMuteInBackgroundHandler"), "SetMasterVolume"), prefix: nameof(BackgroundVolumePrefix));
 		try
 		{
 			TurnHistory.Init();
@@ -85,6 +86,15 @@ internal static class Patches
 	private static void LoadIntoLatestMapCoordPrefix(RunManager __instance)
 	{
 		TurnRewind.BeforeRoomEntry(__instance);
+	}
+
+	/// <summary>窗口切回前台时原版会把主音量恢复成设置值，回退遮罩期间要保持静音。</summary>
+	private static void BackgroundVolumePrefix(ref float volume)
+	{
+		if (TurnRewind.Muted)
+		{
+			volume = 0f;
+		}
 	}
 
 	private static bool RunProcessPrefix()

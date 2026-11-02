@@ -34,6 +34,16 @@ internal static class TurnRewind
 {
 	private const float FastForwardTimeScale = 10f;
 
+	/// <summary>
+	/// 加速时每帧最多推进的游戏时间（秒）。原版不少动画按 Lerp(当前, 目标, delta * k) 逼近（手牌 k 最大到 10，部分界面到 15），
+	/// delta * k 超过 2 就会来回振荡发散成 NaN（牌面变空白、后续复用的卡牌节点也坏掉），所以按实际帧间隔动态限制倍速。
+	/// </summary>
+	private const double MaxStepSeconds = 0.08;
+
+	private static ulong _lastTickUsec;
+
+	private static bool _pacing;
+
 	private const int TurnTimeoutMs = 30000;
 
 	private static RewindPlan? _plan;
@@ -130,6 +140,8 @@ internal static class TurnRewind
 
 	private static bool _muted;
 
+	public static bool Muted => _muted;
+
 	/// <summary>重放期间盖在最上层的黑屏，挡住加速播放的动画、声音和输入，并显示快进到了第几回合。</summary>
 	private static void ShowOverlay(bool canReset)
 	{
@@ -220,7 +232,36 @@ internal static class TurnRewind
 		_replayService = new NetReplayGameService(_realService.NetId);
 		SwapService(run, _realService, _replayService);
 		run.CombatStateSynchronizer.IsDisabled = true;
-		Engine.TimeScale = FastForwardTimeScale;
+		StartPacing();
+	}
+
+	private static void StartPacing()
+	{
+		Engine.TimeScale = 1f;
+		_lastTickUsec = Time.GetTicksUsec();
+		if (!_pacing && Engine.GetMainLoop() is SceneTree tree)
+		{
+			tree.ProcessFrame += Pace;
+			_pacing = true;
+		}
+	}
+
+	private static void StopPacing()
+	{
+		if (_pacing && Engine.GetMainLoop() is SceneTree tree)
+		{
+			tree.ProcessFrame -= Pace;
+		}
+		_pacing = false;
+		Engine.TimeScale = 1f;
+	}
+
+	private static void Pace()
+	{
+		ulong now = Time.GetTicksUsec();
+		double real = (now - _lastTickUsec) / 1_000_000.0;
+		_lastTickUsec = now;
+		Engine.TimeScale = real <= 0 ? 1.0 : Math.Clamp(MaxStepSeconds / real, 1.0, FastForwardTimeScale);
 	}
 
 	public static void OnTurnStarted(int turn)
@@ -312,6 +353,18 @@ internal static class TurnRewind
 					nextStart++;
 				}
 				CombatReplayEvent e = plan.Events[i];
+				if (i < plan.Ids.Count)
+				{
+					(uint actionId, uint hookId) = plan.Ids[i];
+					if (actionId != uint.MaxValue && actionId > run.ActionQueueSet.NextActionId)
+					{
+						run.ActionQueueSet.FastForwardNextActionId(actionId);
+					}
+					if (hookId != uint.MaxValue && hookId > run.ActionQueueSynchronizer.NextHookId)
+					{
+						run.ActionQueueSynchronizer.FastForwardHookId(hookId);
+					}
+				}
 				switch (e.eventType)
 				{
 				case CombatReplayEventType.GameAction:
@@ -392,7 +445,7 @@ internal static class TurnRewind
 	/// <summary>结束回放模式：恢复速度、换回原来的网络服务、撤掉遮罩。</summary>
 	private static void Finish()
 	{
-		Engine.TimeScale = 1f;
+		StopPacing();
 		HideOverlay();
 		RestoreService();
 		_plan = null;

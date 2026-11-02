@@ -22,9 +22,12 @@ public sealed class RewindPlan
 
 	public List<(int Turn, int EventIndex)> TurnStarts = new List<(int, int)>();
 
+	/// <summary>和 Events 一一对应（可以为空）：重放这个事件前要拨到的动作 id 和钩子 id，uint.MaxValue 表示不拨。</summary>
+	public List<(uint Action, uint Hook)> Ids = new List<(uint, uint)>();
+
 	public static RewindPlan From(CombatReplay replay, TurnMark target, IEnumerable<(int Turn, int EventIndex)> starts)
 	{
-		return new RewindPlan
+		RewindPlan plan = new RewindPlan
 		{
 			ChoiceIds = replay.choiceIds.ToList(),
 			RewardIds = replay.rewardIds.ToList(),
@@ -34,6 +37,13 @@ public sealed class RewindPlan
 			TargetTurn = target.Turn,
 			TurnStarts = starts.Where(m => m.Turn <= target.Turn).OrderBy(m => m.EventIndex).ToList()
 		};
+		if (target.Kept != null && target.KeptIds != null)
+		{
+			plan.Ids.AddRange(Enumerable.Repeat((uint.MaxValue, uint.MaxValue), plan.Events.Count));
+			plan.Events.AddRange(target.Kept.Select(i => replay.events[i]));
+			plan.Ids.AddRange(target.KeptIds);
+		}
+		return plan;
 	}
 
 	public void Serialize(PacketWriter writer)
@@ -57,6 +67,12 @@ public sealed class RewindPlan
 		{
 			writer.WriteInt(turn);
 			writer.WriteInt(index);
+		}
+		writer.WriteInt(Ids.Count);
+		foreach ((uint action, uint hook) in Ids)
+		{
+			writer.WriteUInt(action);
+			writer.WriteUInt(hook);
 		}
 	}
 
@@ -82,6 +98,12 @@ public sealed class RewindPlan
 		{
 			int turn = reader.ReadInt();
 			plan.TurnStarts.Add((turn, reader.ReadInt()));
+		}
+		int ids = reader.ReadInt();
+		for (int i = 0; i < ids; i++)
+		{
+			uint action = reader.ReadUInt();
+			plan.Ids.Add((action, reader.ReadUInt()));
 		}
 		return plan;
 	}
