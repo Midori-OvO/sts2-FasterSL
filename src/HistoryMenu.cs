@@ -9,6 +9,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
+using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Saves.Runs;
 
 namespace FasterSL;
@@ -83,16 +84,25 @@ internal static class HistoryMenu
 
 		foreach (NodeEntry entry in entries)
 		{
-			NodeEntry target = entry;
-			Button button = Ui.MakeButton(Describe(entry, entry == current, localId), 22);
-			button.Alignment = HorizontalAlignment.Left;
-			button.CustomMinimumSize = new Vector2(0f, 70f);
-			button.Pressed += () =>
+			bool split = entry.After != null;
+			foreach ((SerializableRun? save, TextId tag) in new[] { (entry.After, TextId.AfterCombat), (entry.Before, TextId.BeforeCombat) })
 			{
-				Close();
-				Reloader.RequestReload(target.Save);
-			};
-			list.AddChild(button);
+				if (save == null)
+				{
+					continue;
+				}
+				SerializableRun target = save;
+				bool isCurrent = entry == current && save == entry.Latest;
+				Button button = Ui.MakeButton(Describe(entry, save, split ? Texts.Get(tag) : null, isCurrent, localId), 22);
+				button.Alignment = HorizontalAlignment.Left;
+				button.CustomMinimumSize = new Vector2(0f, 70f);
+				button.Pressed += () =>
+				{
+					Close();
+					Reloader.RequestReload(target);
+				};
+				list.AddChild(button);
+			}
 		}
 
 		Button cancel = Ui.MakeButton(Texts.Get(TextId.Cancel), 22);
@@ -103,7 +113,7 @@ internal static class HistoryMenu
 		NGame.Instance!.AddChildSafely(_layer);
 	}
 
-	private static string Describe(NodeEntry entry, bool isCurrent, ulong localId)
+	private static string Describe(NodeEntry entry, SerializableRun save, string? tag, bool isCurrent, ulong localId)
 	{
 		string header = Texts.Get(TextId.NodeLabel, entry.Act + 1, entry.Floor);
 		string room = RoomName(entry);
@@ -117,11 +127,15 @@ internal static class HistoryMenu
 		{
 			line1 += (Texts.CurrentLanguage is "zhs" or "zht" or "jpn" ? "：" : ": ") + model;
 		}
+		if (tag != null)
+		{
+			line1 += "  ·  " + tag;
+		}
 		if (isCurrent)
 		{
 			line1 += " " + Texts.Get(TextId.CurrentMark);
 		}
-		SerializablePlayer? player = entry.Save.Players.FirstOrDefault(p => p.NetId == localId) ?? entry.Save.Players.FirstOrDefault();
+		SerializablePlayer? player = save.Players.FirstOrDefault(p => p.NetId == localId) ?? save.Players.FirstOrDefault();
 		if (player == null)
 		{
 			return line1;

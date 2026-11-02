@@ -32,7 +32,9 @@ internal enum TextId
 	TurnProgress,
 	TurnReset,
 	TurnStopping,
-	ReloadStopped
+	ReloadStopped,
+	BeforeCombat,
+	AfterCombat
 }
 
 /// <summary>
@@ -76,7 +78,9 @@ internal static class Texts
 			"Fast-forwarded to turn {0} / {1}",
 			"Reset combat",
 			"Stopping rewind, waiting for other players…",
-			"Reload did not finish. Returned to the main menu. Re-form your party to continue the saved run."
+			"Reload did not finish. Returned to the main menu. Re-form your party to continue the saved run.",
+			"Before combat",
+			"After combat"
 		},
 		["zhs"] = new[]
 		{
@@ -107,7 +111,9 @@ internal static class Texts
 			"已快进到第 {0} / {1} 回合",
 			"重置战斗",
 			"正在停止回退，等待其他玩家…",
-			"重载未完成，已返回主菜单。请重新组队后继续存档。"
+			"重载未完成，已返回主菜单。请重新组队后继续存档。",
+			"战斗前",
+			"战斗后"
 		},
 		["zht"] = new[]
 		{
@@ -138,7 +144,9 @@ internal static class Texts
 			"已快轉到第 {0} / {1} 回合",
 			"重置戰鬥",
 			"正在停止回退，等待其他玩家…",
-			"重載未完成，已返回主選單。請重新組隊後繼續存檔。"
+			"重載未完成，已返回主選單。請重新組隊後繼續存檔。",
+			"戰鬥前",
+			"戰鬥後"
 		},
 		["deu"] = new[]
 		{
@@ -169,7 +177,9 @@ internal static class Texts
 			"Vorgespult bis Zug {0} / {1}",
 			"Kampf zurücksetzen",
 			"Rückkehr wird gestoppt, warte auf andere Spieler…",
-			"Neuladen nicht abgeschlossen. Zurück im Hauptmenü. Bildet die Gruppe neu und setzt den gespeicherten Lauf fort."
+			"Neuladen nicht abgeschlossen. Zurück im Hauptmenü. Bildet die Gruppe neu und setzt den gespeicherten Lauf fort.",
+			"Vor dem Kampf",
+			"Nach dem Kampf"
 		},
 		["spa"] = Spanish(),
 		["esp"] = Spanish(),
@@ -202,7 +212,9 @@ internal static class Texts
 			"Avance rapide jusqu'au tour {0} / {1}",
 			"Réinitialiser le combat",
 			"Arrêt du retour en arrière, en attente des autres joueurs…",
-			"Le rechargement n'a pas abouti. Retour au menu principal. Reformez votre groupe pour reprendre la partie sauvegardée."
+			"Le rechargement n'a pas abouti. Retour au menu principal. Reformez votre groupe pour reprendre la partie sauvegardée.",
+			"Avant le combat",
+			"Après le combat"
 		},
 		["ind"] = new[]
 		{
@@ -233,7 +245,9 @@ internal static class Texts
 			"Dipercepat ke giliran {0} / {1}",
 			"Atur ulang pertarungan",
 			"Menghentikan pengembalian giliran, menunggu pemain lain…",
-			"Muat ulang belum selesai. Kembali ke menu utama. Bentuk ulang grup untuk melanjutkan permainan tersimpan."
+			"Muat ulang belum selesai. Kembali ke menu utama. Bentuk ulang grup untuk melanjutkan permainan tersimpan.",
+			"Sebelum pertarungan",
+			"Sesudah pertarungan"
 		},
 		["ita"] = new[]
 		{
@@ -264,7 +278,9 @@ internal static class Texts
 			"Avanzamento rapido al turno {0} / {1}",
 			"Ricomincia il combattimento",
 			"Interruzione del ritorno al turno, in attesa degli altri giocatori…",
-			"Ricaricamento non completato. Ritorno al menu principale. Riformate il gruppo per continuare la partita salvata."
+			"Ricaricamento non completato. Ritorno al menu principale. Riformate il gruppo per continuare la partita salvata.",
+			"Prima del combattimento",
+			"Dopo il combattimento"
 		},
 		["jpn"] = new[]
 		{
@@ -295,7 +311,9 @@ internal static class Texts
 			"{0} / {1} ターン目まで早送りしました",
 			"戦闘をやり直す",
 			"巻き戻しを停止しています。他のプレイヤーを待っています…",
-			"リロードが完了しなかったため、メインメニューに戻りました。パーティーを組み直してセーブデータから続けてください。"
+			"リロードが完了しなかったため、メインメニューに戻りました。パーティーを組み直してセーブデータから続けてください。",
+			"戦闘前",
+			"戦闘後"
 		},
 		["kor"] = new[]
 		{
@@ -326,7 +344,9 @@ internal static class Texts
 			"{0} / {1}턴까지 빨리 감기 완료",
 			"전투 초기화",
 			"되돌리기를 중지하고 다른 플레이어를 기다리는 중…",
-			"다시 불러오기를 완료하지 못해 메인 메뉴로 돌아왔습니다. 파티를 다시 구성한 뒤 저장된 게임을 계속하세요."
+			"다시 불러오기를 완료하지 못해 메인 메뉴로 돌아왔습니다. 파티를 다시 구성한 뒤 저장된 게임을 계속하세요.",
+			"전투 전",
+			"전투 후"
 		},
 		["pol"] = new[]
 		{
@@ -357,7 +377,9 @@ internal static class Texts
 			"Przewinięto do tury {0} / {1}",
 			"Zresetuj walkę",
 			"Zatrzymywanie cofania, oczekiwanie na innych graczy…",
-			"Ponowne wczytywanie nie zostało ukończone. Powrót do menu głównego. Utwórzcie ponownie grupę i kontynuujcie zapisaną rozgrywkę."
+			"Ponowne wczytywanie nie zostało ukończone. Powrót do menu głównego. Utwórzcie ponownie grupę i kontynuujcie zapisaną rozgrywkę.",
+			"Przed walką",
+			"Po walce"
 		},
 		["ptb"] = new[]
 		{
@@ -388,7 +410,9 @@ internal static class Texts
 			"Avançado até o turno {0} / {1}",
 			"Reiniciar combate",
 			"Interrompendo o retorno, aguardando os outros jogadores…",
-			"O recarregamento não foi concluído. Você voltou ao menu principal. Reúna o grupo novamente para continuar a partida salva."
+			"O recarregamento não foi concluído. Você voltou ao menu principal. Reúna o grupo novamente para continuar a partida salva.",
+			"Antes do combate",
+			"Depois do combate"
 		},
 		["rus"] = new[]
 		{
@@ -419,7 +443,9 @@ internal static class Texts
 			"Перемотано до хода {0} / {1}",
 			"Начать бой заново",
 			"Остановка возврата, ожидание других игроков…",
-			"Перезагрузка не завершена. Возврат в главное меню. Снова соберите группу и продолжите сохранённый забег."
+			"Перезагрузка не завершена. Возврат в главное меню. Снова соберите группу и продолжите сохранённый забег.",
+			"До боя",
+			"После боя"
 		},
 		["tha"] = new[]
 		{
@@ -450,7 +476,9 @@ internal static class Texts
 			"กรอไปถึงเทิร์นที่ {0} / {1} แล้ว",
 			"เริ่มการต่อสู้ใหม่",
 			"กำลังหยุดการย้อนกลับ รอผู้เล่นคนอื่น…",
-			"โหลดใหม่ไม่สำเร็จ กลับสู่เมนูหลักแล้ว โปรดรวมกลุ่มอีกครั้งเพื่อเล่นต่อจากเซฟ"
+			"โหลดใหม่ไม่สำเร็จ กลับสู่เมนูหลักแล้ว โปรดรวมกลุ่มอีกครั้งเพื่อเล่นต่อจากเซฟ",
+			"ก่อนต่อสู้",
+			"หลังต่อสู้"
 		},
 		["tur"] = new[]
 		{
@@ -481,7 +509,9 @@ internal static class Texts
 			"{0} / {1}. tura kadar hızlı ilerletildi",
 			"Savaşı sıfırla",
 			"Geri dönüş durduruluyor, diğer oyuncular bekleniyor…",
-			"Yeniden yükleme tamamlanamadı. Ana menüye dönüldü. Grubu yeniden kurup kayıtlı oyuna devam edin."
+			"Yeniden yükleme tamamlanamadı. Ana menüye dönüldü. Grubu yeniden kurup kayıtlı oyuna devam edin.",
+			"Savaştan önce",
+			"Savaştan sonra"
 		}
 	};
 
@@ -516,7 +546,9 @@ internal static class Texts
 			"Avance rápido hasta el turno {0} / {1}",
 			"Reiniciar combate",
 			"Deteniendo el retroceso, esperando a los demás jugadores…",
-			"La recarga no se completó. Has vuelto al menú principal. Vuelve a formar el grupo para continuar la partida guardada."
+			"La recarga no se completó. Has vuelto al menú principal. Vuelve a formar el grupo para continuar la partida guardada.",
+			"Antes del combate",
+			"Después del combate"
 		};
 	}
 

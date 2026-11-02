@@ -12,10 +12,16 @@ using MegaCrit.Sts2.Core.Saves.MapDrawing;
 
 namespace FasterSL;
 
-/// <summary>本局走过的一个节点：进入该节点那一刻的存档，以及用来显示的信息。</summary>
+/// <summary>本局走过的一个节点：进入该节点那一刻的存档、战斗胜利后（领奖励前）的存档，以及用来显示的信息。</summary>
 internal sealed class NodeEntry
 {
-	public required SerializableRun Save;
+	/// <summary>进入节点那一刻。从主菜单继续到领奖励界面时没有这份。</summary>
+	public SerializableRun? Before;
+
+	/// <summary>战斗胜利、原版写盘时的存档（和“保存并退出”再继续是同一个状态）。</summary>
+	public SerializableRun? After;
+
+	public SerializableRun? Latest => After ?? Before;
 
 	/// <summary>第几幕（从 0 开始）。</summary>
 	public int Act;
@@ -60,6 +66,9 @@ internal static class NodeHistory
 	/// <summary>由 RunManager.EnterMapPointInternal 的 prefix 设置：本次进入节点是否来自读档（saveGame=false）。</summary>
 	public static bool EnteringByLoad;
 
+	/// <summary>同上：本次进入的是已经打完的房间（读档回到领奖励界面）。</summary>
+	public static bool EnteringPreFinished;
+
 	/// <summary>
 	/// 每一幕最新的地图绘画。绘画是按幕的（进入新一幕时游戏会清空地图上的线），
 	/// 回档时把目标幕最新的绘画塞进要载入的存档，否则会退回到进节点那一刻的绘画。
@@ -71,36 +80,91 @@ internal static class NodeHistory
 	public static void Record(SerializableRun save)
 	{
 		bool byLoad = EnteringByLoad;
+		bool preFinished = EnteringPreFinished;
 		EnteringByLoad = false;
+		EnteringPreFinished = false;
+		SyncRun(save);
+		RememberDrawings(save, byLoad);
+		int act = save.CurrentActIndex;
+		int visited = save.VisitedMapCoords.Count;
+		_entries.RemoveAll(e => e.CompareTo(act, visited) > 0);
+		int existing = _entries.FindIndex(e => e.CompareTo(act, visited) == 0);
+		if (preFinished && existing >= 0)
+		{
+			// 读档进已打完的房间时，这里拿到的是战斗后的状态，不能当入口存档
+			return;
+		}
+		if (existing >= 0)
+		{
+			NodeEntry old = _entries[existing];
+			if (byLoad)
+			{
+				// 回到战斗前，战斗后的记录作废（回退单向）
+				old.After = null;
+				if (old.Before != null)
+				{
+					return;
+				}
+			}
+			_entries.RemoveAt(existing);
+		}
+		save = Clone(save);
+		RunState? state = RunManager.Instance?.DebugOnlyGetState();
+		Add(new NodeEntry
+		{
+			Before = save,
+			Act = act,
+			VisitedCount = visited,
+			Floor = save.FloorReached + 1,
+			PointType = state?.CurrentMapPoint?.PointType ?? MapPointType.Unassigned
+		});
+	}
+
+	/// <summary>
+	/// RunSaveManager.SaveRun(SerializableRun, bool) 的 prefix：战斗胜利后原版会带着打完的房间写盘，记下这份。
+	/// 读档回到领奖励界面时 IncrementNumReloads 也会把读入的存档原样写一次，同样走这里。
+	/// </summary>
+	public static void RecordAfter(SerializableRun save)
+	{
+		if (save.PreFinishedRoom is not { IsPreFinished: true } room
+			|| room.RoomType is not (RoomType.Monster or RoomType.Elite or RoomType.Boss))
+		{
+			return;
+		}
+		SyncRun(save);
+		int act = save.CurrentActIndex;
+		int visited = save.VisitedMapCoords.Count;
+		_entries.RemoveAll(e => e.CompareTo(act, visited) > 0);
+		NodeEntry? entry = _entries.Find(e => e.CompareTo(act, visited) == 0);
+		if (entry == null)
+		{
+			RunState? state = RunManager.Instance?.DebugOnlyGetState();
+			entry = new NodeEntry
+			{
+				Act = act,
+				VisitedCount = visited,
+				Floor = state?.TotalFloor ?? save.FloorReached,
+				PointType = state?.CurrentMapPoint?.PointType ?? MapPointType.Unassigned,
+				RoomType = room.RoomType,
+				ModelId = room.EncounterId
+			};
+			Add(entry);
+		}
+		entry.After = Clone(save);
+	}
+
+	private static void SyncRun(SerializableRun save)
+	{
 		if (save.StartTime != _runStartTime)
 		{
 			_entries.Clear();
 			_latestDrawings.Clear();
 			_runStartTime = save.StartTime;
 		}
-		RememberDrawings(save, byLoad);
-		int act = save.CurrentActIndex;
-		int visited = save.VisitedMapCoords.Count;
-		_entries.RemoveAll(e => e.CompareTo(act, visited) > 0);
-		int existing = _entries.FindIndex(e => e.CompareTo(act, visited) == 0);
-		if (existing >= 0)
-		{
-			if (byLoad)
-			{
-				return;
-			}
-			_entries.RemoveAt(existing);
-		}
-		save = Clone(save);
-		RunState? state = RunManager.Instance?.DebugOnlyGetState();
-		NodeEntry entry = new NodeEntry
-		{
-			Save = save,
-			Act = act,
-			VisitedCount = visited,
-			Floor = save.FloorReached + 1,
-			PointType = state?.CurrentMapPoint?.PointType ?? MapPointType.Unassigned
-		};
+	}
+
+	private static void Add(NodeEntry entry)
+	{
 		_entries.Add(entry);
 		if (_entries.Count > MaxEntries)
 		{

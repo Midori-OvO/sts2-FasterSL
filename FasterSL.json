@@ -3,7 +3,7 @@
   "name": "FasterSL",
   "author": "FasterSL",
   "description": "ESC 菜单里的 Save&Load 重载当前房间，“回退到节点”可以回到本局走过的任意节点；战斗中顶栏的“回合”按钮可以回到本场战斗的任意回合。单人直接重载；多人局由房主操作，所有人不断线重载，所有玩家都必须安装。",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "has_pck": false,
   "has_dll": true,
   "dependencies": [],

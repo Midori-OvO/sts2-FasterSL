@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.PauseMenu;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
+using MegaCrit.Sts2.Core.Saves.Managers;
 
 namespace FasterSL;
 
@@ -37,6 +38,7 @@ internal static class Patches
 			Reloader.Info("[补丁失败] 入场同步超时保护不可用：" + ex.Message);
 		}
 		Patch(harmony, AccessTools.DeclaredMethod(typeof(RunManager), "EnterMapPointInternal"), prefix: nameof(EnterMapPointPrefix));
+		Patch(harmony, AccessTools.DeclaredMethod(typeof(RunSaveManager), "SaveRun", new[] { typeof(SerializableRun), typeof(bool) }), prefix: nameof(SaveRunPrefix));
 		Patch(harmony, AccessTools.DeclaredMethod(typeof(RunState), "AppendToMapPointHistory"), postfix: nameof(AppendToMapPointHistoryPostfix));
 		Patch(harmony, AccessTools.DeclaredMethod(typeof(NPauseMenu), "_Ready"), postfix: nameof(PauseMenuReadyPostfix));
 		Patch(harmony, AccessTools.DeclaredMethod(typeof(NPauseMenu), "Initialize"), postfix: nameof(PauseMenuInitializedPostfix));
@@ -133,9 +135,22 @@ internal static class Patches
 	}
 
 	/// <summary>saveGame=false 表示这是读档后重新进入节点（主菜单继续、本 mod 的回退），不是玩家走进新节点。</summary>
-	private static void EnterMapPointPrefix(bool saveGame)
+	private static void EnterMapPointPrefix(bool saveGame, AbstractRoom? preFinishedRoom)
 	{
 		NodeHistory.EnteringByLoad = !saveGame;
+		NodeHistory.EnteringPreFinished = preFinishedRoom != null;
+	}
+
+	private static void SaveRunPrefix(SerializableRun save)
+	{
+		try
+		{
+			NodeHistory.RecordAfter(save);
+		}
+		catch (Exception ex)
+		{
+			Reloader.Info("记录战斗后存档失败：" + ex.Message);
+		}
 	}
 
 	private static void AppendToMapPointHistoryPostfix(MapPointType mapPointType, RoomType initialRoomType, ModelId? roomModelId)

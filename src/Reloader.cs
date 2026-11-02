@@ -261,7 +261,7 @@ internal static class Reloader
 		}
 		RunManager run = RunManager.Instance;
 		bool singleplayer = run.NetService is NetSingleplayerGameService;
-		SerializableRun? save = target ?? NodeHistory.FindCurrent()?.Save;
+		SerializableRun? save = target ?? NodeHistory.FindCurrent()?.Latest;
 		if (save == null)
 		{
 			Toast(Texts.Get(TextId.NoSave));
