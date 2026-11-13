@@ -189,6 +189,7 @@ internal static class Reloader
 		"MapSelectionSynchronizer",
 		"TreasureRoomRelicSynchronizer",
 		"HoveredModelTracker",
+		"MerchantSynchronizer",
 		"RunLocationTargetedBuffer",
 		"ActChangeSynchronizer"
 	};

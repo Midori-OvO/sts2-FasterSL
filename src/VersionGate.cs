@@ -10,7 +10,7 @@ namespace FasterSL;
 /// </summary>
 internal static class VersionGate
 {
-	private static readonly string[] Supported = { "v0.107.1", "v0.111.0" };
+	private static readonly string[] Supported = { "v0.111.0", "v0.113.0" };
 
 	public static bool IsSupported(out string version)
 	{
