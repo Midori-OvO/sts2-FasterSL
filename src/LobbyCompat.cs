@@ -10,7 +10,6 @@ using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 namespace FasterSL;
 
 /// <summary>
-/// 让同一个 dll 同时兼容正式版（v0.107.1）和 Public Beta（v0.111.0）。
 /// 两个版本的 LoadRunLobby 记录玩家的方式不同：
 ///   Beta：  public List&lt;LoadRunLobbyPlayer&gt; Players（结构体，含 id/isModded/isReady）
 ///   正式版：public HashSet&lt;ulong&gt; ConnectedPlayerIds + private HashSet&lt;ulong&gt; _readyPlayers
